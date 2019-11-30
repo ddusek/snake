@@ -1,30 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace ConsoleSnake {
 	class GameArea {
-		int lenX;
+		public int lenX;
 		int lenY;
-		int[,] matrix;
-		string box = "[ ]";
-		string boxFilled = "[o]";
+		string[,] matrix;
+		string empty = "XX";
+		string snakeBody = "()";
+		string snakeHead = ".<>";
 
+		public void SetConsoleSize() {
+			Console.SetWindowSize(lenX*2, lenY+1);
+		}
 		public GameArea(int lenX, int lenY) {
 			this.lenX = lenX;
 			this.lenY = lenY;
-			this.matrix = new int[lenX, lenY];
+			matrix = new string[lenX, lenY];
+			InitMatrix();
+		}
+
+		public void InitMatrix() {
+			for (int x = 0; x < lenX; x++) {
+				for (int y = 0; y < lenY; y++) {
+					matrix[x, y] = empty;
+				}
+			}
+		}
+		public void ChangeMatrix() {
+			
 		}
 
 		public void ShowMatrix() {
-			int s = 0;
 			for (int y = 0; y < lenY; y++) {
 				for (int x = 0; x < lenX; x++) {
-					Console.Write(box);
+					Console.Write(matrix[x, y]);
 				}
-				s++;
 				Console.WriteLine();
 			}
+		}
+
+		public void ClearConsole() {
+			Console.Clear();
+		}
+		
+		public void ShowEveryXSeconds(int seconds) {
+			while (true) {
+				ClearConsole();
+				ShowMatrix();
+				Thread.Sleep(seconds * 1000);
+			}
+
+		}
+
+		public int GetSnakeLocation() {
+			return 0;
 		}
 	}
 }
