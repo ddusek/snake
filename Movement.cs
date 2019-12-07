@@ -1,94 +1,119 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Linq;
+using System.Threading;
 
 namespace Snake {
 	class Movement {
-		string[,] neighbors;
-		string wall = "[]";
+		public int Mstime = 1000;
+		public ConsoleKey PressedKey { get; set; }
 
-		public ConsoleKey GetKey() {
-			var keyinfo = Console.ReadKey();
-			return keyinfo.Key;
+		// set direction to right from beginning
+		public Movement(Matrix3x3 matrix3x3) {
+			PressedKey = ConsoleKey.RightArrow;
 		}
 
-		//move everything needed in gamearea
-		public void Move(GameArea gameArea) {
-			ConsoleKey pressedKey = GetKey();
-			for (int x = 0; x < gameArea.lenX; x++) {
-				for (int y = 0; y < gameArea.lenY; y++) {
-					string symbol = gameArea.matrix[x, y];
-
-					// only if box isn't empty
-					if (symbol != gameArea.empty) {
-						// change head to body
-						if (symbol == gameArea.snakeHead) {
-							gameArea.matrix[x, y] = gameArea.snakeBody;
-						}
-						// remove last body box
-						else if (gameArea.matrix[x,y] == gameArea.snakeBody) {
-							MoveBodyBox(gameArea.matrix, x ,y);
-						}
-					}
-				}
+		// wait x seconds before next movement happens, if not valid key is pressed, PressedKey is set to the last pressed key
+		public void ReadPressedKey(int mstime) {
+			Thread.Sleep(mstime);
+			if (!Console.KeyAvailable) {
+				
+			} else {
+				var keyPressed = Console.ReadKey(true).Key;
+				PressedKey = keyPressed;
 			}
 		}
-
-		// return matrix of neighbors (3x3)
-		// borders (walls) = "[]", no walls are returned as in gameArea.matrix
-		public void GetNeighbors(GameArea gameArea, int x, int y) {
-			string[,] neighbors = new string[3,3];
-			for (int NX = 0; NX < 3; NX++) {
-				for (int NY = 0; NY < 3; NY++) {
-					if ((NX == 0 && x == 0) || (NX == 2 && x == gameArea.lenX-1)) {
-						neighbors[NX, NY] = wall;
-					}
-					else if ((NY == 0 && y == 0) || (NY == 2 && y == gameArea.lenY - 1)) {
-						neighbors[NX, NY] = wall;
-					}
-					else {
-						neighbors[NX, NY] = gameArea.matrix[x + NX - 1, y + NY - 1];
-					}
-				}
+		// check if candy is on target location
+		public bool IsValidPathCandy(GameArea gameArea, int x, int y, Matrix3x3 matrix3X3) {
+			if(matrix3X3.Matrix[x,y] == gameArea.Candy) {
+				return true;
 			}
-			this.neighbors = neighbors;
-
-		}
-		public void MoveBodyBox(string[,] matrix, int x, int y) {
-
-		}
-
-		//return bools if there are walls in order - top, bot, left, right
-		public Tuple<bool, bool, bool, bool> CheckWalls() {
-			bool top = IsWallTop();
-			bool bot = IsWallBot();
-			bool left = IsWallLeft();
-			bool right = IsWallRight();
-			return Tuple.Create(top, bot, left, right);
-			
-
-
-		}
-
-		public bool IsWallTop() {
-			if (neighbors[1, 0] == wall) {return true;}
 			return false;
 		}
 
-		public bool IsWallBot() {
-			if (neighbors[1, 2] == wall) { return true; }
-			return false;
+		// check is selected direction is valid
+		public bool IsValidPath(GameArea gameArea, Matrix3x3 matrix3X3) { 
+			if (PressedKey == ConsoleKey.DownArrow) {
+				if (matrix3X3.Matrix[1,2] == gameArea.Empty || matrix3X3.Matrix[1,2] == gameArea.Candy) {
+					return true;
+				}
+				return false;
+			} else if (PressedKey == ConsoleKey.UpArrow) {
+				if (matrix3X3.Matrix[1, 0] == gameArea.Empty || matrix3X3.Matrix[1, 0] == gameArea.Candy) {
+					return true;
+				}
+				return false;
+			} else if (PressedKey == ConsoleKey.LeftArrow) {
+				if (matrix3X3.Matrix[0, 1] == gameArea.Empty || matrix3X3.Matrix[0, 1] == gameArea.Candy) {
+					return true;
+				}
+				return false;
+			} else {
+				if (matrix3X3.Matrix[2, 1] == gameArea.Empty || matrix3X3.Matrix[2, 1] == gameArea.Candy) {
+					return true;
+				}
+				return false;
+			}
 		}
+		// move whole gameArea matrix
+		public void Move(GameArea gameArea, Matrix3x3 matrix3x3) {
+			int headX = gameArea.SnakeHeadLocation.Item1;
+			int headY = gameArea.SnakeHeadLocation.Item2;
+			int tailX = gameArea.SnakeTailLocation.Item1;
+			int tailY = gameArea.SnakeTailLocation.Item2;
+			//if down arrow
+			if (PressedKey == ConsoleKey.DownArrow) {
+				if (IsValidPathCandy(gameArea, headX, headY + 1, matrix3x3)) { 
+					// TODO create new candy here
+				} else {
+					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+					// TODO change last body part to tail
+				}
+				// move head and change old head to body
+				gameArea.Matrix[headX, headY + 1] = gameArea.SnakeHead;
+				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
+			}
+			//if up arrow
+			if (PressedKey == ConsoleKey.UpArrow) {
+				if (IsValidPathCandy(gameArea, headX, headY - 1, matrix3x3)) {
+					// TODO create new candy here
+				}
+				else {
+					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+					// TODO change last body part to tail
+				}
+				// move head and change old head to body
+				gameArea.Matrix[headX, headY - 1] = gameArea.SnakeHead;
+				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
+			}
+			//if left arrow
+			if (PressedKey == ConsoleKey.LeftArrow) {
+				if (IsValidPathCandy(gameArea, headX -1, headY, matrix3x3)) {
+					// TODO create new candy here
+				}
+				else {
+					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+					// TODO change last body part to tail
+				}
+				// move head and change old head to body
+				gameArea.Matrix[headX -1, headY] = gameArea.SnakeHead;
+				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
+			}
+			//if right arrow
+			if (PressedKey == ConsoleKey.RightArrow) {
+				if (IsValidPathCandy(gameArea, headX +1, headY, matrix3x3)) {
+					// TODO create new candy here
+				}
+				else {
+					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+					// TODO change last body part to tail
+				}
+				// move head and change old head to body
+				gameArea.Matrix[headX +1, headY] = gameArea.SnakeHead;
+				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
+			}
 
-		public bool IsWallLeft() {
-				if (neighbors[0, 1] == wall) { return true; }
-			return false;
-		}
 
-		public bool IsWallRight() {
-				if (neighbors[2, 1] == wall) { return true; }
-			return false;
 		}
 	}
 }
