@@ -24,8 +24,12 @@ namespace Snake {
 			}
 		}
 		// check if candy is on target location
-		public bool IsValidPathCandy(GameArea gameArea, int x, int y, Matrix3x3 matrix3X3) {
-			if(matrix3X3.Matrix[x,y] == gameArea.Candy) {
+		private bool IsValidPathCandy(GameArea gameArea, int x, int y) {
+			if(gameArea.Matrix[x,y] == gameArea.Candy) {
+				gameArea.Score += 1;
+				if (gameArea.speedMs >= 100){
+					gameArea.speedMs -= 50;
+				}
 				return true;
 			}
 			return false;
@@ -63,57 +67,71 @@ namespace Snake {
 			int tailY = gameArea.SnakeTailLocation.Item2;
 			//if down arrow
 			if (PressedKey == ConsoleKey.DownArrow) {
-				if (IsValidPathCandy(gameArea, headX, headY + 1, matrix3x3)) { 
-					// TODO create new candy here
+				if (IsValidPathCandy(gameArea, headX, headY + 1)) {
+					gameArea.CreateCandy();
 				} else {
-					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
-					// TODO change last body part to tail
+					MoveTail(gameArea, tailX, tailY);
 				}
-				// move head and change old head to body
+				// move head and change old head position to body
 				gameArea.Matrix[headX, headY + 1] = gameArea.SnakeHead;
 				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
 			}
 			//if up arrow
 			if (PressedKey == ConsoleKey.UpArrow) {
-				if (IsValidPathCandy(gameArea, headX, headY - 1, matrix3x3)) {
-					// TODO create new candy here
+				if (IsValidPathCandy(gameArea, headX, headY - 1)) {
+					gameArea.CreateCandy();
 				}
 				else {
-					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
-					// TODO change last body part to tail
+					MoveTail(gameArea, tailX, tailY);
 				}
-				// move head and change old head to body
 				gameArea.Matrix[headX, headY - 1] = gameArea.SnakeHead;
 				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
 			}
 			//if left arrow
 			if (PressedKey == ConsoleKey.LeftArrow) {
-				if (IsValidPathCandy(gameArea, headX -1, headY, matrix3x3)) {
-					// TODO create new candy here
+				if (IsValidPathCandy(gameArea, headX -1, headY)) {
+					gameArea.CreateCandy();
 				}
 				else {
-					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
-					// TODO change last body part to tail
+					MoveTail(gameArea, tailX, tailY);
 				}
-				// move head and change old head to body
 				gameArea.Matrix[headX -1, headY] = gameArea.SnakeHead;
 				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
 			}
 			//if right arrow
 			if (PressedKey == ConsoleKey.RightArrow) {
-				if (IsValidPathCandy(gameArea, headX +1, headY, matrix3x3)) {
-					// TODO create new candy here
+				if (IsValidPathCandy(gameArea, headX +1, headY)) {
+					gameArea.CreateCandy();
 				}
 				else {
-					gameArea.Matrix[tailX, tailY] = gameArea.Empty;
-					// TODO change last body part to tail
+					MoveTail(gameArea, tailX, tailY);
 				}
-				// move head and change old head to body
 				gameArea.Matrix[headX +1, headY] = gameArea.SnakeHead;
 				gameArea.Matrix[headX, headY] = gameArea.SnakeBody;
 			}
-
-
+		}
+		//move tail part to last body part position
+		private void MoveTail(GameArea gameArea, int tailX, int tailY) {
+			// if body part is down from tail, move tail part there
+			if (gameArea.Matrix[tailX, tailY + 1] == gameArea.SnakeBody) {
+				gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+				gameArea.Matrix[tailX, tailY + 1] = gameArea.SnakeTail;
+			}
+			// if body part is up
+			else if (gameArea.Matrix[tailX, tailY - 1] == gameArea.SnakeBody) {
+				gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+				gameArea.Matrix[tailX, tailY - 1] = gameArea.SnakeTail;
+			}
+			// if body part is left
+			else if (gameArea.Matrix[tailX - 1, tailY] == gameArea.SnakeBody) {
+				gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+				gameArea.Matrix[tailX - 1, tailY] = gameArea.SnakeTail;
+			}
+			// if body part is right
+			else if (gameArea.Matrix[tailX + 1, tailY] == gameArea.SnakeBody) {
+				gameArea.Matrix[tailX, tailY] = gameArea.Empty;
+				gameArea.Matrix[tailX + 1, tailY] = gameArea.SnakeTail;
+			}
 		}
 	}
 }
